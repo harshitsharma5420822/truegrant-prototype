@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TrueGrant · Prototype</title>
+<style>
+:root{--bg:#faf7f2;--ink:#1d2a2a;--muted:#5d6b68;--card:#ffffff;--line:#e4ddd0;--teal:#0f6e6a;--teal-2:#e6f2f1;--on:#ffffff;--gold:#c9872b;--ok:#2e7d4f;--warn:#9a6212;--radius:16px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131a19;--ink:#e9efed;--muted:#a3b1ae;--card:#1c2624;--line:#2f3d3a;--teal:#4fb3ad;--teal-2:#20332f;--on:#0b1412;--ok:#6fcf97;--warn:#f2c572}}
+:root[data-theme="dark"]{--bg:#131a19;--ink:#e9efed;--muted:#a3b1ae;--card:#1c2624;--line:#2f3d3a;--teal:#4fb3ad;--teal-2:#20332f;--on:#0b1412;--ok:#6fcf97;--warn:#f2c572}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px;max-width:1000px;margin:0 auto}
+.brand{font-family:Georgia,serif;font-weight:700;font-size:22px;color:var(--teal);text-decoration:none}
+nav a,nav .linkbtn{margin-left:14px;color:var(--teal);font-weight:600;text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;padding:6px 0}
+main{max-width:1000px;margin:0 auto;padding:8px 16px 60px}
+h1{font-family:Georgia,serif;font-size:clamp(32px,6vw,54px);line-height:1.1;margin:12px 0 14px}
+h2{font-family:Georgia,serif;font-size:30px;margin:8px 0 6px}
+h3{font-size:18px;margin:6px 0 4px}
+.hero{padding:48px 0 28px}
+.lead{font-size:18px;color:var(--muted);max-width:640px}
+.muted{color:var(--muted);font-size:14px;margin:4px 0}
+.btn{display:inline-block;font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 18px;min-height:44px;cursor:pointer;background:var(--teal);color:var(--on);text-decoration:none;text-align:center}
+.btn.ghost{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.steps{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));margin:20px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 16px}
+.pill{display:inline-block;font-size:13px;padding:3px 10px;border-radius:999px;background:var(--teal-2);color:var(--teal);font-weight:600}
+.pill.ok{background:#e3f3ea;color:var(--ok)}
+.pill.wait{background:#fbf0dc;color:var(--warn)}
+.pill.lock{background:var(--line);color:var(--muted)}
+.hash{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;word-break:break-all;background:var(--teal-2);padding:8px 10px;border-radius:8px;margin-top:8px}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0}
+.bar>span{display:block;height:100%;background:var(--teal)}
+.stage{margin-bottom:14px}
+.stage.active{border-color:var(--gold);box-shadow:0 0 0 2px #f4e3c4}
+.stage.locked{opacity:.8}
+.check{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.box{width:24px;height:24px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:var(--on)}
+.check.done .box{background:var(--ok);border-color:var(--ok)}
+.check.done span.t{color:var(--muted);text-decoration:line-through}
+.small{min-height:36px;padding:6px 10px;font-size:14px}
+label{display:block;font-weight:600;margin:14px 0 6px}
+input{font:inherit;padding:12px;border:1.5px solid var(--line);border-radius:10px;width:100%;background:var(--card);color:var(--ink)}
+form .btn{width:100%;margin-top:18px}
+.msg{padding:12px 14px;border-radius:12px;margin:8px 0 14px;display:none}
+.msg.show{display:block}
+.msg.ok{background:#e3f3ea;color:#1d5a37}
+.msg.err{background:#f6e3e3;color:#7a2222}
+.msg.info{background:var(--teal-2);color:var(--ink)}
+.stat .big{font-family:Georgia,serif;font-size:26px}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){.hero{padding-top:24px}h2{font-size:26px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/">TrueGrant</a>
+  <nav id="nav" aria-label="Main"></nav>
+</header>
+<main id="app" role="main"></main>
+<footer>Prototype · sample organisations and figures · no real payments · transaction hashes are simulated for this demo.</footer>
+
+<script>
+const KEY = 'truegrant_proto_v1';
+const RECEIPT_SEED = null;
+
+const ORGS = [
+  {id:'hope', name:'Hope Bridge Relief', focus:'Shelter, food and schools for displaced families', area:'South Kivu, DR Congo (sample)'},
+  {id:'lumen', name:'Lumen Schools Network', focus:'Rebuilding classrooms and teacher training', area:'Eastern region (sample)'},
+  {id:'warm', name:'Warm Table Aid', focus:'Hot meals and ration distribution', area:'Northern region (sample)'},
+  {id:'thread', name:'Threadline Clothing Aid', focus:'Winter clothing and fabric workshops', area:'Border region (sample)'}
+];
+
+const PROJECTS = [
+  {id:'p1', org:'hope', title:'Displaced families, South Kivu', cause:'Shelter kits, food and school kits for families displaced by fighting.', raised:18000, stages:[
+    {name:'Shelter kits', amount:8000, rel:true, done:[true,true], conds:['Invoice matches the approved budget','Local verifier signs off the delivery']},
+    {name:'Food for 3 months', amount:10000, rel:false, done:[true,true,false,false], conds:['Paid to a verified local wholesaler, not a personal account','Invoice matches the approved budget','Local verifier signs off the delivery','Distribution list with photos uploaded']},
+    {name:'School kits', amount:7000, rel:false, done:[false,false], conds:['Supplier invoice matches the budget','Local verifier signs off the delivery']}
+  ]},
+  {id:'p2', org:'hope', title:'Winter blankets, Goma', cause:'Blankets for families sheltering in temporary sites.', raised:3000, stages:[
+    {name:'Blanket purchase', amount:6000, rel:false, done:[true,false], conds:['Supplier is on the verified list','Invoice matches the approved budget']},
+    {name:'Distribution', amount:4000, rel:false, done:[false,false], conds:['Distribution list with photos uploaded','Local verifier signs off']},
+    {name:'Impact check', amount:1500, rel:false, done:[false], conds:['Beneficiary count matches the list']}
+  ]},
+  {id:'p3', org:'lumen', title:'Rebuilding a school in a war-affected town', cause:'Safe walls, a roof, desks and teacher training so children can return to class.', raised:25000, stages:[
+    {name:'Safety survey', amount:3000, rel:true, done:[true,true], conds:['Engineer report filed','Site cleared by local authority']},
+    {name:'Walls and roof', amount:22000, rel:false, done:[true,true,false,false], conds:['Contractor is registered','Materials invoice checked','Engineer signs off on site','Photos of finished walls uploaded']},
+    {name:'Desks, books and teacher training', amount:9000, rel:false, done:[false,false], conds:['Engineer signs off the roof','Teacher training attendance list']}
+  ]},
+  {id:'p4', org:'warm', title:'Hot ration distribution', cause:'Three months of rations for registered families.', raised:12000, stages:[
+    {name:'Ration purchase', amount:6000, rel:true, done:[true,true], conds:['Invoice matches the approved budget','Supplier is verified']},
+    {name:'Distribution, 3 months', amount:9000, rel:false, done:[true,false,false], conds:['Ration count matches registered families','Local verifier signs off','Photos of distribution uploaded']},
+    {name:'Monitoring report', amount:2500, rel:false, done:[false], conds:['Verifier reviews the monitoring report']}
+  ]},
+  {id:'p5', org:'thread', title:'Winter clothing for displaced children', cause:'Fabric, tailoring and clothing for children in displacement camps.', raised:2000, stages:[
+    {name:'Fabric and tailoring', amount:4000, rel:false, done:[false,false], conds:['Supplier invoice matches the budget','Tailoring workshop is registered']},
+    {name:'Clothes distribution', amount:5500, rel:false, done:[false,false,false], conds:['Beneficiary list checked','Local verifier signs off','Photos uploaded']},
+    {name:'Impact report', amount:1500, rel:false, done:[false], conds:['Verifier reviews the report']}
+  ]}
+];
+
+// ---------- helpers ----------
+function hx(s){
+  let out='';
+  for(let k=0;k<8;k++){
+    let x=(0x811c9dc5 ^ (k*0x9e3779b9)) >>> 0;
+    for(let i=0;i<s.length;i++){ x=Math.imul(x ^ s.charCodeAt(i), 0x01000193) ^ (k*31+i); }
+    x ^= x>>>15; x=Math.imul(x,0x2c1b3c6d); x ^= x>>>12;
+    out += (x>>>0).toString(16).padStart(8,'0');
+  }
+  return '0x'+out;
+}
+function txHash(s){ return hx(s + Date.now() + Math.random()); }
+function shortHash(h){ return h.slice(0,6)+'…'+h.slice(-3); }
+function round2(n){ return Math.round(n*100)/100; }
+function money(n){ return '€'+Number(n).toLocaleString('en-GB',{maximumFractionDigits:2}); }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ---------- state ----------
+function seed(){
+  const proj={};
+  PROJECTS.forEach(p=>{
+    proj[p.id]={raised:p.raised, released:p.stages.map((s,i)=>s.rel?hx(p.id+i+'seed'):null), done:p.stages.map(s=>s.done.slice())};
+  });
+  return {user:null, balance:120, txs:[
+    {type:'Stage released', pid:'p1', amount:8000, fee:0, hash:hx('p10seed'), note:'Stage 1: Shelter kits paid to supplier'}
+  ], proj};
+}
+function load(){
+  try{ const raw=localStorage.getItem(KEY); if(raw){ const d=JSON.parse(raw); if(d&&d.proj) return d; } }catch(e){}
+  return seed();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let S = load();
+let flash = null;
+function setFlash(t,m){ flash={t,m}; }
+
+function pstate(pid){
+  const p = PROJECTS.find(x=>x.id===pid);
+  const st = S.proj[pid];
+  const relSum = p.stages.reduce((a,s,i)=>a+(st.released[i]?s.amount:0),0);
+  const idx = st.released.findIndex(x=>!x);
+  return {p, st, relSum, escrow: round2(st.raised-relSum), idx: idx===-1 ? p.stages.length : idx};
+}
+
+// Smart-contract rule: a stage pays only when all its checks pass and escrow covers it. Runs automatically.
+function evaluate(pid){
+  const {p} = pstate(pid);
+  const st = S.proj[pid];
+  let n=0;
+  for(let i=0;i<p.stages.length;i++){
+    if(st.released[i]) continue;
+    if(!st.done[i].every(Boolean)) break;
+    const {escrow} = pstate(pid);
+    if(escrow < p.stages[i].amount) break;
+    const h = txHash(pid+'rel'+i);
+    st.released[i] = h;
+    S.txs.unshift({type:'Stage released', pid, amount:p.stages[i].amount, fee:0, hash:h, note:`Stage ${i+1}: ${p.stages[i].name} paid to supplier`});
+    n++;
+  }
+  return n;
+}
+
+// ---------- navigation ----------
+const PARENT = {org:'#/orgs', project:'#/org', wallet:'#/orgs', orgs:'#/', login:'#/'};
+function route(){ return location.hash.replace(/^#\/?/,'').split('/'); }
+
+function renderNav(){
+  document.getElementById('nav').innerHTML = S.user
+    ? `<a href="#/orgs">Organisations</a><a href="#/wallet">Wallet</a><button class="linkbtn" data-act="signout">Sign out</button>`
+    : `<a href="#/login">Sign in</a>`;
+}
+
+// ---------- pages ----------
+function pageLanding(){
+  return `
+  <section class="hero">
+    <span class="pill">Prototype · sample data · no real money</span>
+    <h1>Give with proof.<br>Every payment is checked first.</h1>
+    <p class="lead">TrueGrant funds aid projects in conflict areas one verified stage at a time. Your money waits in escrow and moves only when the checks for that stage pass.</p>
+    <div class="row" style="justify-content:flex-start;margin-top:22px">
+      <a class="btn" href="#/login">Sign in to start</a>
+      <button class="btn ghost" data-act="how">How it works</button>
+    </div>
+  </section>
+  <section id="how" class="steps" aria-label="How it works">
+    <div class="card"><span class="pill">1 · Give</span><h3>Choose a project</h3><p class="muted">Send a gift from your wallet to a project run by a verified organisation.</p></div>
+    <div class="card"><span class="pill">2 · Hold</span><h3>Money waits in escrow</h3><p class="muted">Funds stay locked until the checks for the current stage pass.</p></div>
+    <div class="card"><span class="pill ok">3 · Release</span><h3>Stage by stage</h3><p class="muted">When every check passes, the stage is paid and a transaction hash is recorded.</p></div>
+  </section>`;
+}
+
+function pageLogin(){
+  return `
+  <div class="nav"><a class="btn ghost" href="#/">← Back</a></div>
+  <div class="card" style="max-width:460px;margin:12px auto">
+    <h2>Sign in</h2>
+    <p class="muted">Your name and email identify you. A wallet is created when you sign in.</p>
+    <form id="login" novalidate>
+      <label for="nm">Full name</label>
+      <input id="nm" autocomplete="name" required>
+      <label for="em">Email</label>
+      <input id="em" type="email" autocomplete="email" required>
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <p class="muted">Demo: any password works.</p>
+      <button class="btn" type="submit">Sign in and open wallet</button>
+      <div id="lerr" class="msg err" role="alert"></div>
+    </form>
+  </div>`;
+}
+
+function pageOrgs(){
+  return `
+  <div class="nav"><a class="btn ghost" href="#/">← Back</a><span class="pill">Wallet ${money(S.balance)}</span></div>
+  <h2>Organisations</h2>
+  <p class="muted">Pick an organisation to see its projects.</p>
+  <div class="grid" style="margin-top:14px">
+    ${ORGS.map(o=>`
+      <div class="card">
+        <span class="pill ok">Verified (sample)</span>
+        <h3 style="margin-top:10px">${esc(o.name)}</h3>
+        <p class="muted">${esc(o.focus)}</p>
+        <p class="muted">📍 ${esc(o.area)}</p>
+        <p class="muted">${PROJECTS.filter(p=>p.org===o.id).length} project(s)</p>
+        <a class="btn" href="#/org/${o.id}" style="margin-top:8px">View projects</a>
+      </div>`).join('')}
+  </div>`;
+}
+
+function pageOrg(id){
+  const o = ORGS.find(x=>x.id===id);
+  if(!o) return notFound();
+  const projects = PROJECTS.filter(p=>p.org===id);
+  return `
+  <div class="nav"><a class="btn ghost" href="#/orgs">← Back</a><span class="pill">Wallet ${money(S.balance)}</span></div>
+  <h2>${esc(o.name)}</h2>
+  <p class="muted">${esc(o.focus)} · ${esc(o.area)}</p>
+  <div class="grid" style="margin-top:14px">
+    ${projects.map(p=>{
+      const {st,escrow,idx} = pstate(p.id);
+      const rel = st.released.filter(Boolean).length;
+      const pct = Math.round(rel/p.stages.length*100);
+      const now = idx < p.stages.length ? `Now: Stage ${idx+1} · ${esc(p.stages[idx].name)}` : 'All stages released';
+      return `
+      <div class="card">
+        <h3>${esc(p.title)}</h3>
+        <p class="muted">${esc(p.cause)}</p>
+        <div class="bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+        <p class="muted">${rel} of ${p.stages.length} stages released · ${money(escrow)} held in escrow</p>
+        <p><span class="pill wait">${now}</span></p>
+        <a class="btn" href="#/project/${p.id}" style="margin-top:8px">Open project</a>
+      </div>`;}).join('')}
+  </div>`;
+}
+
+function pageProject(pid){
+  const p = PROJECTS.find(x=>x.id===pid);
+  if(!p) return notFound();
+  const o = ORGS.find(x=>x.id===p.org);
+  const {st,relSum,escrow,idx} = pstate(pid);
+  const total = p.stages.reduce((a,s)=>a+s.amount,0);
+  const banner = idx < p.stages.length
+    ? `<div class="msg info show"><strong>Right now: Stage ${idx+1} · ${esc(p.stages[idx].name)} is in progress.</strong> Gifts pay for this stage only after all its checks pass.</div>`
+    : `<div class="msg ok show"><strong>All stages released.</strong> Every payment passed its checks.</div>`;
+
+  const stagesHtml = p.stages.map((s,i)=>{
+    const status = st.released[i] ? 'released' : (i===idx ? 'active' : 'locked');
+    const pill = status==='released' ? `<span class="pill ok">✓ Released</span>`
+              : status==='active' ? `<span class="pill wait">In progress</span>`
+              : `<span class="pill lock">Locked</span>`;
+    let body='';
+    if(status==='released'){
+      body = `<p class="muted">Paid to the supplier. Recorded on the ledger:</p><div class="hash" title="Transaction hash">${st.released[i]}</div>`;
+    } else if(status==='active'){
+      const d = st.done[i].filter(Boolean).length, n = s.conds.length;
+      const checks = s.conds.map((c,j)=>{
+        const ok = st.done[i][j];
+        return `<div class="check ${ok?'done':''}"><span class="box" aria-hidden="true">${ok?'✓':''}</span><span class="t" style="flex:1">${esc(c)}</span>${ok?'':`<button class="btn ghost small" data-act="cond" data-pid="${p.id}" data-i="${i}" data-j="${j}">Mark done (demo)</button>`}</div>`;
+      }).join('');
+      const msg = d<n
+        ? `Waiting for ${n-d} more check${n-d>1?'s':''}. No money moves until all pass.`
+        : `All checks passed. Waiting for ${money(round2(s.amount-escrow))} more in escrow.`;
+      body = `${checks}<p class="muted" style="margin-top:10px"><strong>Smart contract:</strong> ${msg}</p>`;
+    } else {
+      body = `<p class="muted">Unlocks only after the previous stage is released.</p>`;
+    }
+    return `
+    <div class="card stage ${status}">
+      <div class="row">
+        <div><span class="muted">Stage ${i+1}</span><h3>${esc(s.name)}</h3></div>
+        <div style="text-align:right">${pill}<div class="muted">${money(s.amount)}</div></div>
+      </div>
+      ${body}
+    </div>`;
+  }).join('');
+
+  const acts = S.txs.filter(t=>t.pid===pid).slice(0,4);
+
+  return `
+  <div class="nav"><a class="btn ghost" href="#/org/${o.id}">← Back</a><span class="pill">Wallet ${money(S.balance)}</span></div>
+  <span class="muted">${esc(o.name)}</span>
+  <h2>${esc(p.title)}</h2>
+  <p class="lead" style="margin-top:4px">${esc(p.cause)}</p>
+  ${banner}
+  <div class="grid stat" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin:14px 0">
+    <div class="card"><div class="muted">Project total</div><div class="big">${money(total)}</div></div>
+    <div class="card"><div class="muted">Released</div><div class="big">${money(relSum)}</div></div>
+    <div class="card"><div class="muted">Held in escrow</div><div class="big">${money(escrow)}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:18px"><h3>How the money moves</h3><p class="muted">Money is used one stage at a time. A smart contract checks each condition automatically, and pays only when all of them pass.</p></div>
+  <h3>Stages</h3>
+  ${stagesHtml}
+  ${acts.length ? `<h3 style="margin-top:22px">Latest transactions</h3>${acts.map(t=>`
+    <div class="card" style="margin-bottom:10px;padding:14px"><div class="row"><strong>${esc(t.type)}</strong><span>${money(t.amount)}</span></div>
+    ${t.note?`<div class="muted">${esc(t.note)}</div>`:''}<div class="hash" title="${t.hash}">${t.hash}</div></div>`).join('')}` : ''}
+  <div class="card" style="margin-top:20px">
+    <h3>Give to this project</h3>
+    <p class="muted">Your gift is held in escrow and released stage by stage. Sample wallet, no real money.</p>
+    <div class="row" style="justify-content:flex-start;margin-top:10px">
+      ${[25,50,100].map(v=>`<button class="btn ghost small" data-act="amt" data-v="${v}">€${v}</button>`).join('')}
+    </div>
+    <label for="amt">Amount (€)</label>
+    <input id="amt" type="number" min="1" step="1" value="50">
+    <p class="muted" id="sum"></p>
+    <button class="btn" data-act="gift" data-pid="${p.id}" ${S.user?'':'disabled'}>Send gift from wallet</button>
+  </div>`;
+}
+
+function pageWallet(){
+  const rows = S.txs.map(t=>{
+    const p = PROJECTS.find(x=>x.id===t.pid);
+    return `<div class="card" style="margin-bottom:10px;padding:14px">
+      <div class="row"><strong>${esc(t.type)}</strong><span>${money(t.amount)}</span></div>
+      <div class="muted">${p?esc(p.title):'Wallet'}${t.note?' · '+esc(t.note):''}</div>
+      <div class="hash" title="${t.hash}">${t.hash}</div></div>`;
+  }).join('');
+  return `
+  <div class="nav"><a class="btn ghost" href="#/orgs">← Back</a></div>
+  <h2>Your wallet</h2>
+  <div class="card">
+    <p class="muted">Balance</p>
+    <div style="font-family:Georgia,serif;font-size:40px">${money(S.balance)}</div>
+    <p class="muted">Wallet address</p>
+    <div class="hash">${S.user.address}</div>
+    <div class="row" style="justify-content:flex-start;margin-top:14px">
+      <button class="btn" data-act="addfunds">Add €100 demo funds</button>
+      <button class="btn ghost" data-act="reset">Reset demo</button>
+    </div>
+  </div>
+  <h3 style="margin-top:22px">Transactions</h3>
+  ${rows || '<p class="muted">No transactions yet. Send a gift from a project to see one.</p>'}
+  <p class="muted">Hashes are simulated for this prototype. A live version would record them on a real blockchain.</p>`;
+}
+
+function notFound(){
+  return `<div class="nav"><a class="btn ghost" href="#/orgs">← Back</a></div><h2>Not found</h2><p class="muted">This page does not exist.</p>`;
+}
+
+// ---------- render ----------
+function render(){
+  const [r,id] = route();
+  const guarded = ['orgs','org','project','wallet'];
+  if(guarded.includes(r) && !S.user){ location.hash = '#/login'; return; }
+  renderNav();
+  let html;
+  if(r==='login') html = pageLogin();
+  else if(r==='orgs') html = pageOrgs();
+  else if(r==='org') html = pageOrg(id);
+  else if(r==='project') html = pageProject(id);
+  else if(r==='wallet') html = pageWallet();
+  else html = pageLanding();
+  const msg = flash ? `<div class="msg show ${flash.t}" role="status">${esc(flash.m)}</div>` : '';
+  flash = null;
+  document.getElementById('app').innerHTML = msg + html;
+  if(r==='project') updateSum();
+}
+
+function updateSum(){
+  const el = document.getElementById('sum'); const inp = document.getElementById('amt');
+  if(!el || !inp) return;
+  const v = parseFloat(inp.value)||0;
+  const fee = round2(v*0.05);
+  el.textContent = `Gift ${money(v)} + 5% platform fee ${money(fee)} = ${money(round2(v+fee))} from your wallet. Tax receipt: 66% of your gift (${money(round2(v*0.66))}).`;
+}
+
+// ---------- actions ----------
+function gift(pid){
+  const v = parseFloat(document.getElementById('amt').value);
+  if(!(v>0)) { setFlash('err','Enter an amount above €0.'); return render(); }
+  const fee = round2(v*0.05), total = round2(v+fee);
+  if(total > S.balance){ setFlash('err',`Not enough in your wallet. You need ${money(total)}.`); return render(); }
+  S.balance = round2(S.balance-total);
+  S.proj[pid].raised = round2(S.proj[pid].raised+v);
+  const h = txHash(pid+'gift'+v);
+  S.txs.unshift({type:'Gift to escrow', pid, amount:v, fee, hash:h, note:'Held in escrow'});
+  const n = evaluate(pid);
+  setFlash(n ? 'ok' : 'info', n ? 'Gift received. Checks passed, so a stage was released automatically.' : `Gift held in escrow. Transaction ${shortHash(h)}`);
+  save(); render();
+}
+
+function markCond(pid,i,j){
+  S.proj[pid].done[i][j] = true;
+  const n = evaluate(pid);
+  setFlash(n ? 'ok' : 'info', n ? 'All checks passed. The smart contract released the stage automatically.' : 'Check recorded. The stage is still waiting for the remaining checks.');
+  save(); render();
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const a = b.dataset.act;
+  if(a==='how') return document.getElementById('how')?.scrollIntoView({behavior:'smooth'});
+  if(a==='amt'){ document.getElementById('amt').value = b.dataset.v; return updateSum(); }
+  if(a==='gift') return gift(b.dataset.pid);
+  if(a==='cond') return markCond(b.dataset.pid, +b.dataset.i, +b.dataset.j);
+  if(a==='addfunds'){
+    S.balance = round2(S.balance+100);
+    S.txs.unshift({type:'Demo funds added', pid:null, amount:100, fee:0, hash:txHash('demo'), note:'Sample funds, not real money'});
+    setFlash('ok','€100 demo funds added.'); save(); return render();
+  }
+  if(a==='reset'){
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    S = seed(); flash=null; location.hash = '#/'; return render();
+  }
+  if(a==='signout'){
+    S.user = null; save(); location.hash = '#/'; return render();
+  }
+});
+
+document.addEventListener('input', e=>{ if(e.target.id==='amt') updateSum(); });
+
+document.addEventListener('submit', e=>{
+  if(e.target.id !== 'login') return;
+  e.preventDefault();
+  const name = document.getElementById('nm').value.trim();
+  const email = document.getElementById('em').value.trim();
+  const pw = document.getElementById('pw').value;
+  const err = document.getElementById('lerr');
+  if(!name || !/^\S+@\S+\.\S+$/.test(email) || !pw){
+    err.textContent = 'Please enter your name, a valid email and a password.';
+    err.classList.add('show');
+    return;
+  }
+  S.user = {name, email, address:'0x'+hx(email).slice(2,42)};
+  save();
+  setFlash('ok', `Welcome, ${name}. Your wallet is ready.`);
+  location.hash = '#/orgs';
+});
+
+window.addEventListener('hashchange', render);
+render();
+</script>
+</body>
+</html>
